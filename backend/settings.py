@@ -1,5 +1,5 @@
 from pathlib import Path
-
+from datetime import timedelta
 import environ
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -43,6 +43,8 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
+    "django_filters",
     "corsheaders",
     "cloudinary",
     "cloudinary_storage",
@@ -184,6 +186,31 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
     ),
+}
+
+
+SIMPLE_JWT = {
+    # Durées de vie des tokens
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    
+    # Rotation & Blacklist à la déconnexion ou lors du refresh
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": True,
+
+    # Algorithme et signature
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    
+    # Configuration spécifique à ton modèle User (phone au lieu de username)
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
+    "USER_AUTHENTICATE_METHOD": "rest_framework_simplejwt.authentication.default_user_authentication_rule",
+
+    # Serializer personnalisé qu'on a créé (utilisant "phone")
+    "TOKEN_OBTAIN_SERIALIZER": "users.auth_views.CustomTokenObtainPairSerializer",
 }
 
 # ------------------------------------------------------------------------------

@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from utils.functions import generate_sku
+from django.urls import reverse
 
 # Create your models here.
 from utils.mixins import AutoSlugMixin, NamedModel, TimeMixin
@@ -74,9 +75,16 @@ class Product(AutoSlugMixin, TimeMixin):
         verbose_name = "Produit"
         verbose_name_plural = "Produits"
 
+    @property
+    def est_actif(self):
+        return self.is_active and self.stock > 0 and self.price
+
     def __str__(self):
         cat = self.category.name if self.category else "Category"
         return f"{self.name} - {cat}"
+
+    def get_absolute_url(self):
+        return reverse('catalog:product-detail', kwargs={'slug': self.slug})
 
     def clean(self):
         super().clean()

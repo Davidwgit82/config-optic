@@ -1,8 +1,12 @@
 from django.urls import path, include
 from rest_framework.routers import SimpleRouter
-from rest_framework_simplejwt.views import TokenRefreshView
+from rest_framework_simplejwt.views import (
+    TokenRefreshView,
+    TokenBlacklistView
+)
 from .views import UserViewSet
 from .auth_views import CustomTokenObtainPairView
+
 
 app_name = "users"
 
@@ -13,6 +17,7 @@ urlpatterns = [
     # Routes d'authentification JWT
     path("login/", CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path('logout/', TokenBlacklistView.as_view(), name="logout"),
     
     # Routes de gestion d'utilisateur (/ et /me/)
     path("", include(router.urls)),

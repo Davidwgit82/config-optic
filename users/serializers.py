@@ -8,7 +8,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         write_only=True, required=True, style={
             'input_type': 'password'
         },
-        min_lenght=8
+        min_length=8
     )
 
     class Meta:

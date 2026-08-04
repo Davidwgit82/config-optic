@@ -48,6 +48,7 @@ THIRD_PARTY_APPS = [
     "corsheaders",
     "cloudinary",
     "cloudinary_storage",
+    "drf_spectacular",
 ]
 
 LOCAL_APPS = [
@@ -186,8 +187,16 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
     ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
+SPECTACULAR_SETTINGS = {
+    "TITLE": "optic",
+    "DESCRIPTION": "API REST pour la gestion du catalogue, des paniers, des commandes et de la prise de rendez-vous.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "COMPONENT_SPLIT_REQUEST": True,  # Sépare les schémas de Requête (Create) et de Réponse (Read)
+}
 
 SIMPLE_JWT = {
     # Durées de vie des tokens

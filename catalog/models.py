@@ -4,7 +4,6 @@ from django.db import models
 from utils.functions import generate_sku
 from django.urls import reverse
 
-# Create your models here.
 from utils.mixins import AutoSlugMixin, NamedModel, TimeMixin
 
 

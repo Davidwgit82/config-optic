@@ -25,10 +25,12 @@ def api_create_product(request):
     }, status=201)"""
 
 
-from rest_framework import viewsets, filters, status
+from rest_framework import viewsets, filters, status, permissions
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Prefetch
+
+from .services import CategoryService
 
 from .models import Product, ProductImage
 from utils.permissions import IsAdminOrReadOnly
@@ -38,6 +40,12 @@ from .serializers import (
     ProductWriteSerializer,
 )
 
+class CategoryViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.AllowAny]
+
+
+    def get_queryset(self):
+        return CategoryService.get_categories()
 
 class ProductViewSet(viewsets.ModelViewSet):
     lookup_field = "slug"  # Utilise le slug dans les URLs à la place de l'ID (e-commerce SEO)

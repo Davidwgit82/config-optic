@@ -61,7 +61,6 @@ class Order(TimeMixin):
         super().save(*args, **kwargs)
 
 
-
 class OrderItem(TimeMixin):
     order = models.ForeignKey(
         Order,

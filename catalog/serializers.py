@@ -39,6 +39,7 @@ class ProductListSerializer(serializers.ModelSerializer):
             "is_on_sale",
             "category",
             "brand",
+            "stock",
             "primary_image",
             "images",
         )

@@ -31,10 +31,8 @@ class OrderViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         try:
-            order = OrderService.create_order_from_items(
-                user=request.user,
-                items_data=serializer.validated_data["items"]
-            )
+            # On supprime items_data car le service va chercher le panier tout seul via l'utilisateur
+            order = OrderService.create_order_from_cart(user=request.user)
         except DjangoValidationError as e:
             raise DRFValidationError(e.message_dict if hasattr(e, "message_dict") else e.messages)
 

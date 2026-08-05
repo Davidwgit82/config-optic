@@ -14,6 +14,7 @@ api_v1_patterns = [
     path("cart/", include("cart.urls", namespace="cart")),
     path("orders/", include("orders.urls", namespace="orders")),
     path("appointments/", include("appointments.urls", namespace="appointments")),
+    path("payments/", include("payments.urls", namespace="payments")), 
 ]
 
 urlpatterns = [

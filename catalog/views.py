@@ -48,10 +48,9 @@ class CategoryViewSet(viewsets.ModelViewSet):
         return CategoryService.get_categories()
 
 class ProductViewSet(viewsets.ModelViewSet):
-    lookup_field = "slug"  # Utilise le slug dans les URLs à la place de l'ID (e-commerce SEO)
+    lookup_field = "slug" 
     permission_classes = [IsAdminOrReadOnly]
     
-    # Filtres, Recherche et Tri
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ["category", "brand", "is_active"]
     search_fields = ["name", "description", "sku"]
@@ -66,7 +65,6 @@ class ProductViewSet(viewsets.ModelViewSet):
         """
         queryset = Product.objects.select_related("category", "brand")
 
-        # Pour la liste, on ne charge que les images indispensables (prefetch)
         images_prefetch = Prefetch(
             "images",
             queryset=ProductImage.objects.only("id", "product_id", "file", "is_primary").order_by("-is_primary", "id"),
@@ -79,10 +77,18 @@ class ProductViewSet(viewsets.ModelViewSet):
 
         return queryset.prefetch_related(images_prefetch)
 
+    def get_permissions(self):
+        """
+        Instancie et retourne la liste des permissions que cette vue requiert.
+        """
+        if self.action in ["create", "update", "partial_update", "destroy"]:
+            permission_classes = [permissions.IsAdminUser]
+        else:
+            # Autorise tout le monde (ou IsAuthenticated) pour la lecture (list, retrieve)
+            permission_classes = [permissions.AllowAny] 
+        return [permission() for permission in permission_classes]
+
     def get_serializer_class(self):
-        """
-        Dynamise le Serializer selon l'action.
-        """
         if self.action == "list":
             return ProductListSerializer
         elif self.action == "retrieve":

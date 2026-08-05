@@ -22,6 +22,22 @@ class OrderStatus(TextChoices):
 #     HOME = "HOME", "A domicile",
 #     ON_SITE = "ON_SITE", "Sur place"
 
+# paiement
+class PaymentStatus(TextChoices):
+    PENDING = "pending", "En attente"
+    SUCCESS = "success", "Réussi"
+    FAILED = "failed", "Échoué"
+    CANCELLED = "cancelled", "Annulé"
+    REFUNDED = "refunded", "Remboursé"
+    EXPIRED = "expired", "Expiré"
+
+
+class PaymentGateway(TextChoices):
+    WAVE = "wave", "Wave"
+    ORANGE_MONEY = "orange_money", "Orange Money"
+    MTN_MOMO = "mtn_momo", "MTN Mobile Money"
+    MOOV_MONEY = "moov_money", "Moov Money"
+
 
 class WeekDay(TextChoices):
     MONDAY = "MONDAY", "Lundi"

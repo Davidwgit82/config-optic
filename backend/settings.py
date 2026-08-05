@@ -22,6 +22,15 @@ environ.Env.read_env(BASE_DIR / ".env")
 # AUTH USER MODEL 
 AUTH_USER_MODEL = 'users.User'
 
+# GENIUS PAY API
+GENIUS_PAY_BASE_URL= env('GENIUS_PAY_BASE_URL')
+GENIUS_API_KEY = env('GENIUS_API_KEY')
+GENIUS_API_SECRET= env('GENIUS_API_SECRET')
+
+GENIUS_WEBHOOK_SECRET = env("GENIUS_WEBHOOK_SECRET")
+
+FRONTEND_URL = env('FRONTEND_URL')
+
 # ------------------------------------------------------------------------------
 # Security
 # ------------------------------------------------------------------------------

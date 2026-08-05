@@ -69,7 +69,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         # Pour la liste, on ne charge que les images indispensables (prefetch)
         images_prefetch = Prefetch(
             "images",
-            queryset=ProductImage.objects.only("id", "product_id", "file", "is_primary"),
+            queryset=ProductImage.objects.only("id", "product_id", "file", "is_primary").order_by("-is_primary", "id"),
             to_attr="prefetched_images"
         )
         

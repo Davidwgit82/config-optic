@@ -26,6 +26,8 @@ class ProductListSerializer(serializers.ModelSerializer):
     primary_image = serializers.SerializerMethodField()
     is_on_sale = serializers.BooleanField(read_only=True)
 
+    images = serializers.SerializerMethodField()
+
     class Meta:
         model = Product
         fields = (
@@ -38,6 +40,7 @@ class ProductListSerializer(serializers.ModelSerializer):
             "category",
             "brand",
             "primary_image",
+            "images",
         )
 
     def get_primary_image(self, obj):
@@ -47,6 +50,15 @@ class ProductListSerializer(serializers.ModelSerializer):
             request = self.context.get("request")
             return request.build_absolute_uri(primary.file.url) if request else primary.file.url
         return None
+
+
+    def get_images(self, obj):
+        request = self.context.get("request")
+        images = getattr(obj, "prefetched_images", obj.images.all())
+        urls = [img.file.url for img in images]
+        if request:
+            return [request.build_absolute_uri(u) for u in urls]
+        return urls
 
 
 class ProductDetailSerializer(serializers.ModelSerializer):

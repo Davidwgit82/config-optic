@@ -31,3 +31,10 @@ class WeekDay(TextChoices):
     FRIDAY = "FRIDAY", "Vendredi"
     SATURDAY = "SATURDAY", "Samedi"
     SUNDAY = "SUNDAY", "Dimanche"
+
+
+class Gender(TextChoices):
+    MEN = "MEN", "Homme"
+    WOMEN = "WOMEN", "Femme"
+    UNISEX = "UNISEX", "Unisexe"
+    KIDS = "KIDS", "Enfant"

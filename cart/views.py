@@ -1,11 +1,11 @@
-from rest_framework import viewsets, status, permissions
-from rest_framework.decorators import action
-from rest_framework.response import Response
 from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework import permissions, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError as DRFValidationError
+from rest_framework.response import Response
 
 from .models import Cart, CartItem
-from .serializers import CartSerializer, AddToCartSerializer, UpdateCartItemSerializer
+from .serializers import AddToCartSerializer, CartSerializer, UpdateCartItemSerializer
 from .services import CartService
 
 
@@ -15,7 +15,7 @@ class CartViewSet(viewsets.GenericViewSet):
     def _get_cart(self, request) -> Cart:
         user = request.user if request.user.is_authenticated else None
         session_key = request.headers.get("X-Session-Key") or request.session.session_key
-        
+
         if not user and not session_key:
             if not request.session.exists(request.session.session_key):
                 request.session.create()
@@ -45,28 +45,37 @@ class CartViewSet(viewsets.GenericViewSet):
         except DjangoValidationError as e:
             raise DRFValidationError(e.messages)
 
-        return Response(CartSerializer(cart, context={"request": request}).data, status=status.HTTP_200_OK)
+        # Force la réévaluation des relations et des propriétés calculées (subtotal, total_items)
+        cart.refresh_from_db()
+
+        return Response(
+            CartSerializer(cart, context={"request": request}).data,
+            status=status.HTTP_200_OK,
+        )
 
     @action(detail=False, methods=["patch", "delete"], url_path="items/(?P<item_id>[^/.]+)")
     def update_or_delete_item(self, request, item_id=None):
         """PATCH/DELETE /api/v1/cart/items/{item_id}/ : Modifie la quantité ou supprime l'article"""
         cart = self._get_cart(request)
+
         try:
-            item = CartItem.objects.get(id=item_id, cart=cart)
-        except CartItem.DoesNotExist:
-            return Response({"detail": "Article non trouvé dans votre panier."}, status=status.HTTP_404_NOT_FOUND)
+            if request.method == "DELETE":
+                CartService.remove_from_cart(cart=cart, item_id=item_id)
+            else:  # PATCH
+                serializer = UpdateCartItemSerializer(data=request.data)
+                serializer.is_valid(raise_exception=True)
+                CartService.update_item_quantity(
+                    cart=cart,
+                    item_id=item_id,
+                    quantity=serializer.validated_data["quantity"],
+                )
+        except DjangoValidationError as e:
+            raise DRFValidationError(e.messages)
 
-        if request.method == "DELETE":
-            item.delete()
-        else:  # PATCH
-            serializer = UpdateCartItemSerializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            quantity = serializer.validated_data["quantity"]
-            
-            if item.product.stock < quantity:
-                raise DRFValidationError(f"Stock insuffisant ({item.product.stock} dispo).")
-            
-            item.quantity = quantity
-            item.save(update_fields=["quantity"])
+        # Force le rechargement propre des relations et sous-totaux mis à jour
+        cart.refresh_from_db()
 
-        return Response(CartSerializer(cart, context={"request": request}).data, status=status.HTTP_200_OK)
+        return Response(
+            CartSerializer(cart, context={"request": request}).data,
+            status=status.HTTP_200_OK,
+        )

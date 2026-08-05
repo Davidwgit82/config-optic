@@ -1,6 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import FileExtensionValidator
-from utils.validators import IvoryCoastPhoneValidator
+from utils.validators import IvoryCoastPhoneValidator, normalize_ivorian_phone
 from utils.mixins import TimeMixin
 from .managers import CustomUserManager
 from utils.enums import Country
@@ -46,6 +46,16 @@ class User(AbstractUser, TimeMixin):
     def __str__(self):
         full_name = self.get_full_name().strip()
         return full_name if full_name else self.phone
+
+    def clean(self):
+        super().clean()
+        if self.phone:
+            self.phone = normalize_ivorian_phone(self.phone)
+
+    def save(self, *args, **kwargs):
+        if self.phone:
+            self.phone = normalize_ivorian_phone(self.phone)
+        super().save(*args, **kwargs)
 
     class Meta:
         ordering = ["-created_at"]

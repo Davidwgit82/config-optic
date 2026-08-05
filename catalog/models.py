@@ -5,6 +5,7 @@ from utils.functions import generate_sku
 from django.urls import reverse
 
 from utils.mixins import AutoSlugMixin, NamedModel, TimeMixin
+from utils.enums import Gender
 
 
 class Category(NamedModel):
@@ -48,6 +49,16 @@ class Product(AutoSlugMixin, TimeMixin):
         related_name="products",
     )
 
+    color = models.CharField("Couleur", max_length=100, blank=True, null=True, default=None, db_index=True)
+
+    gender = models.CharField(
+        "Genre",
+        max_length=10,
+        choices=Gender.choices,
+        default=Gender.UNISEX,
+        db_index=True
+    )
+
     """ base fields """
     name = models.CharField(max_length=100, verbose_name="Nom")
     price = models.DecimalField(max_digits=10, decimal_places=0, verbose_name="Prix")
@@ -80,7 +91,7 @@ class Product(AutoSlugMixin, TimeMixin):
 
     def __str__(self):
         cat = self.category.name if self.category else "Category"
-        return f"{self.name} - {cat}"
+        return f"{self.name} - {cat} - {self.get_gender_display()}"
 
     def get_absolute_url(self):
         return reverse('catalog:product-detail', kwargs={'slug': self.slug})
@@ -121,29 +132,38 @@ class Product(AutoSlugMixin, TimeMixin):
 
 class ProductImage(TimeMixin):
     product = models.ForeignKey(
-        Product, on_delete=models.CASCADE, related_name="images"
+        "catalog.Product",
+        on_delete=models.CASCADE,
+        related_name="images",
     )
-
     file = models.ImageField("Image", upload_to="products/%Y/%m/")
-    is_primary = models.BooleanField(default=False, verbose_name="Image principale", help_text="Premiere image affichée.")
+    is_primary = models.BooleanField(
+        "Image principale",
+        default=False,
+        help_text="Première image affichée.",
+    )
 
     class Meta:
         ordering = ["id"]
-
         verbose_name = "Image produit"
         verbose_name_plural = "Images produit"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["product"],
+                condition=models.Q(is_primary=True),
+                name="unique_primary_image_per_product",
+            )
+        ]
 
     def __str__(self):
         return f"Image de {self.product.name}"
 
-
     def clean(self):
         super().clean()
 
-
-        if self.is_primary:
+        if self.is_primary and self.product_id:
             exists = ProductImage.objects.filter(
-                product=self.product,
+                product_id=self.product_id,
                 is_primary=True,
             ).exclude(pk=self.pk)
 
@@ -153,10 +173,9 @@ class ProductImage(TimeMixin):
                 )
 
     def save(self, *args, **kwargs):
-
-        self.full_clean()
-
-        if self.pk is None and not self.product.images.exists():
+        # Si c'est la toute première image du produit, on la passe automatiquement en principale
+        if self.pk is None and self.product_id and not self.product.images.exists():
             self.is_primary = True
 
+        self.full_clean()
         super().save(*args, **kwargs)

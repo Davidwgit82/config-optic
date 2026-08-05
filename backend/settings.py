@@ -1,6 +1,11 @@
 from pathlib import Path
 from datetime import timedelta
 import environ
+from corsheaders.defaults import default_headers
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "x-session-key",
+]
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -93,6 +98,29 @@ if DEBUG:
 # ------------------------------------------------------------------------------
 
 ROOT_URLCONF = "backend.urls"
+
+# ------------------------------------------------------------------------------
+# CORS
+# ------------------------------------------------------------------------------
+
+CORS_ALLOWED_ORIGINS = env.list(
+    "CORS_ALLOWED_ORIGINS",
+    default=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
+)
+
+CORS_ALLOW_CREDENTIALS = True
+
+SESSION_COOKIE_SAMESITE = "Lax"
+
+if DEBUG:
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+else:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 # ------------------------------------------------------------------------------
 # Templates
@@ -222,16 +250,6 @@ SIMPLE_JWT = {
     "TOKEN_OBTAIN_SERIALIZER": "users.auth_views.CustomTokenObtainPairSerializer",
 }
 
-# ------------------------------------------------------------------------------
-# CORS
-# ------------------------------------------------------------------------------
-
-CORS_ALLOWED_ORIGINS = env.list(
-    "CORS_ALLOWED_ORIGINS",
-    default=[],
-)
-
-CORS_ALLOW_CREDENTIALS = True
 
 # ------------------------------------------------------------------------------
 # Debug Toolbar

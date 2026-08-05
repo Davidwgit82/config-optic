@@ -27,8 +27,8 @@ class BusinessHour(TimeMixin):
         choices=WeekDay.choices,
         db_index=True,
     )
-    open_time = models.TimeField("Heure d'ouverture")
-    close_time = models.TimeField("Heure de fermeture")
+    open_time = models.TimeField("Heure d'ouverture", blank=True, null=True)
+    close_time = models.TimeField("Heure de fermeture", blank=True, null=True)
     is_closed = models.BooleanField("Fermé", default=False)
     reason = models.TextField("Motif de fermeture", blank=True, null=True)
 
@@ -44,14 +44,24 @@ class BusinessHour(TimeMixin):
         ]
 
     def __str__(self):
+        if self.is_closed:
+            return f"{self.get_day_of_week_display()} - Fermé ({self.reason or 'Sans motif'})"
         return f"{self.get_day_of_week_display()} {self.open_time.strftime('%H:%M')} - {self.close_time.strftime('%H:%M')}"
 
     def clean(self):
         super().clean()
-        if not self.is_closed and self.open_time >= self.close_time:
-            raise ValidationError("L'heure de fermeture doit être supérieure à l'heure d'ouverture.")
-        if self.is_closed and not self.reason:
-            raise ValidationError({"reason": "Veuillez indiquer le motif de fermeture."})
+
+        if not self.is_closed:
+            if not self.open_time or not self.close_time:
+                raise ValidationError({
+                    "open_time": "Obligatoire si l'établissement est ouvert.",
+                    "close_time": "Obligatoire si l'établissement est ouvert."
+                })
+            if self.open_time >= self.close_time:
+                raise ValidationError("L'heure de fermeture doit être supérieure à l'heure d'ouverture.")
+        else:
+            if not self.reason:
+                raise ValidationError({"reason": "Veuillez indiquer le motif de fermeture."})
 
 
 class Appointment(TimeMixin):

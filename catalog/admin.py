@@ -24,10 +24,10 @@ class ProductImageInline(admin.TabularInline):
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ("name", "parent", "is_active")
     list_filter = ("is_active",)
+    list_editable = ("is_active",)
     search_fields = ("name",)
     ordering = ("name",)
-
-    autocomplete_fields = ('parent',)
+    autocomplete_fields = ("parent",)
 
 
 @admin.register(Brand)
@@ -43,6 +43,7 @@ class ProductAdmin(admin.ModelAdmin):
         "name",
         "category",
         "brand",
+        "gender",
         "price",
         "promo_price",
         "stock",
@@ -50,7 +51,7 @@ class ProductAdmin(admin.ModelAdmin):
         "is_active",
     )
     list_display_links = ("name",)
-    list_filter = ("category", "brand", "is_active")
+    list_filter = ("category", "brand", "gender", "is_active")
     search_fields = ("name", "sku")
     autocomplete_fields = ("category", "brand")
     readonly_fields = ("sku", "slug", "created_at", "updated_at")
@@ -64,6 +65,8 @@ class ProductAdmin(admin.ModelAdmin):
                 "fields": (
                     "category",
                     "brand",
+                    "gender",
+                    "color",
                     "name",
                     "slug",
                     "description",

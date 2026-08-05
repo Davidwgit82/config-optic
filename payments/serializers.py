@@ -13,6 +13,12 @@ class InitiatePaymentSerializer(serializers.Serializer):
     )
     mmo_provider = serializers.CharField(required=False, allow_blank=True)
 
+    # Champs spécifiques pour les clients invités
+    customer_name = serializers.CharField(required=False, allow_blank=True)
+    customer_phone = serializers.CharField(required=False, allow_blank=True)
+    customer_email = serializers.EmailField(required=False, allow_blank=True)
+    customer_country = serializers.CharField(required=False, default="CI")
+
 
 class PaymentResponseSerializer(serializers.Serializer):
     reference = serializers.CharField()

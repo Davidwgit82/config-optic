@@ -14,6 +14,11 @@ class Payment(models.Model):
         related_name="payments",
     )
 
+    cart_id = models.IntegerField(null=True, blank=True)
+    guest_email = models.EmailField(blank=True)
+    guest_phone = models.CharField(max_length=30, blank=True)
+    guest_name = models.CharField(max_length=30, blank=True)
+
     # Référence renvoyée par GeniusPay (ex: MTX-A1B2C3D4E5)
     reference = models.CharField(
         max_length=50,

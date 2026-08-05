@@ -33,7 +33,7 @@ GENIUS_STATUS_MAP = {
 logger = logging.getLogger(__name__)
 
 class InitiatePaymentView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     @extend_schema(
         request=InitiatePaymentSerializer,
@@ -44,10 +44,13 @@ class InitiatePaymentView(APIView):
         serializer.is_valid(raise_exception=True)
         validated = serializer.validated_data
 
-        order = Order.objects.filter(
-            id=validated["order_id"],
-            user=request.user,
-        ).first()
+        # 1. Récupération de la commande
+        order_query = Order.objects.filter(id=validated["order_id"])
+
+        if request.user.is_authenticated:
+            order = order_query.filter(user=request.user).first()
+        else:
+            order = order_query.first()
 
         if not order:
             return Response(
@@ -68,13 +71,22 @@ class InitiatePaymentView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # 2. Construction du customer directement depuis l'Order ou User
+        if order.user:
+            customer_name = f"{order.user.first_name} {order.user.last_name}".strip() or order.user.username
+            customer_phone = getattr(order.user, "phone", "") or ""
+            customer_email = order.user.email or ""
+        else:
+            customer_name = "Client Invité"
+            customer_phone = order.guest_phone or ""
+            customer_email = order.guest_email or ""
+
         customer = {
-            "name": f"{request.user.first_name} {request.user.last_name}".strip(),
-            "phone": request.user.phone,
-            "country": request.user.country,
+            "name": customer_name,
+            "phone": customer_phone,
+            "email": customer_email,
+            "country": "CI",
         }
-        if request.user.email:
-            customer["email"] = request.user.email
 
         client = GeniusPayClient()
 

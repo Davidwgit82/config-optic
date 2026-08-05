@@ -10,6 +10,19 @@ from .models import Cart, CartItem
 class CartService:
 
     @staticmethod
+    def get_cart_from_request(request) -> Cart:
+        """Extrait l'utilisateur ou la clef de session d'une requête et retourne le panier."""
+        user = request.user if request.user and request.user.is_authenticated else None
+        session_key = request.headers.get("X-Session-Key") or request.session.session_key
+
+        if not user and not session_key:
+            if not request.session.exists(request.session.session_key):
+                request.session.create()
+            session_key = request.session.session_key
+
+        return CartService.get_or_create_cart(user=user, session_key=session_key)
+
+    @staticmethod
     def get_or_create_cart(user=None, session_key=None) -> Cart:
         """Récupère ou crée un panier basé sur l'utilisateur ou la session."""
         if user and user.is_authenticated:
